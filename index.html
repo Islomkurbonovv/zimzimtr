@@ -3,6 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '773468665733671');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel Code -->
 <title>Zim-Zim — Restoran Yönetim Sistemi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -220,6 +236,9 @@
     background-repeat:no-repeat;background-position:right 16px center}
   .field select:invalid{color:#B4B0A8}
   .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 4px var(--red-soft);background:#fff}
+  .field-error{display:none;font-size:12.5px;font-weight:600;color:var(--red);margin-top:6px}
+  .field.invalid .field-error{display:block}
+  .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--red);box-shadow:0 0 0 4px var(--red-soft)}
   .form-card .btn-primary{width:100%;margin-top:8px;padding:15px}
   .form-foot{font-size:12.5px;color:var(--muted);text-align:center;margin-top:14px}
   .form-success{display:none;text-align:center;padding:18px 8px 6px}
@@ -451,6 +470,7 @@
             <option>Fast food</option>
             <option>Diğer</option>
           </select>
+          <div class="field-error"></div>
         </div>
         <div class="field">
           <label for="f-method">Şu an nasıl yönetiyorsunuz?</label>
@@ -461,6 +481,7 @@
             <option>Başka bir program ile</option>
             <option>Henüz bir sistem yok</option>
           </select>
+          <div class="field-error"></div>
         </div>
         <div class="field">
           <label for="f-problem">Şu an en büyük sorununuz ne?</label>
@@ -473,18 +494,22 @@
             <option>Rapor ve kâr takibi yok</option>
             <option>Diğer</option>
           </select>
+          <div class="field-error"></div>
         </div>
         <div class="field">
           <label for="f-city">Hangi şehirdesiniz?</label>
           <input type="text" id="f-city" placeholder="Örnek: İstanbul, Kadıköy">
+          <div class="field-error"></div>
         </div>
         <div class="field">
           <label for="f-name">Adınız</label>
           <input type="text" id="f-name" placeholder="Örnek: Ahmet Yılmaz">
+          <div class="field-error"></div>
         </div>
         <div class="field">
           <label for="f-phone">Telefon numaranız</label>
           <input type="tel" id="f-phone" placeholder="+90 532 123 45 67">
+          <div class="field-error"></div>
         </div>
         <button class="btn btn-primary" id="submitBtn">Talebi gönder <span class="btn-arrow">→</span></button>
         <div class="form-foot">Bilgileriniz üçüncü kişilerle paylaşılmaz.</div>
@@ -540,17 +565,39 @@
 
   // Form (yalnizca on yuz — backend/CRM baglantisi buraya eklenir)
   const btn = document.getElementById('submitBtn');
-  btn.addEventListener('click', () => {
-    const ids = ['f-type','f-method','f-problem','f-city','f-name','f-phone'];
-    let firstEmpty = null;
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      const ok = el.value.trim() !== '';
-      el.style.borderColor = ok ? '' : '#E8202A';
-      el.style.boxShadow = ok ? '' : '0 0 0 4px #FDECEC';
-      if (!ok && !firstEmpty) firstEmpty = el;
+
+  function validPhone(v){
+    const d = v.replace(/\D/g,'');
+    return d.length >= 10 && d.length <= 13;
+  }
+
+  // kullanici duzeltince uyariyi kaldir
+  document.querySelectorAll('#formBody .field').forEach(f => {
+    const ctrl = f.querySelector('input,select,textarea');
+    if (!ctrl) return;
+    const ev = ctrl.tagName === 'SELECT' ? 'change' : 'input';
+    ctrl.addEventListener(ev, () => {
+      const ok = ctrl.id === 'f-phone' ? validPhone(ctrl.value) : ctrl.value.trim() !== '';
+      if (ok) f.classList.remove('invalid');
     });
-    if (firstEmpty) { firstEmpty.focus(); return; }
+  });
+
+  btn.addEventListener('click', () => {
+    const required = ['f-type','f-method','f-problem','f-city','f-name','f-phone'];
+    const msgs = { 'f-type':'Lütfen seçin','f-method':'Lütfen seçin','f-problem':'Lütfen seçin','f-city':'Şehir bilgisini girin','f-name':'Adınızı girin','f-phone':'Telefon numaranızı girin' };
+    let firstInvalid = null;
+    required.forEach(id => {
+      const ctrl = document.getElementById(id);
+      const field = ctrl.closest('.field');
+      const err = field.querySelector('.field-error');
+      let bad = false, msg = '';
+      if (ctrl.value.trim() === '') { bad = true; msg = msgs[id]; }
+      else if (id === 'f-phone' && !validPhone(ctrl.value)) { bad = true; msg = 'Geçerli bir telefon numarası girin'; }
+      if (bad) { field.classList.add('invalid'); if (err) err.textContent = msg; if (!firstInvalid) firstInvalid = ctrl; }
+      else { field.classList.remove('invalid'); }
+    });
+    if (firstInvalid) { firstInvalid.focus(); return; }
+    if (typeof fbq === 'function') fbq('track', 'Lead');
     // gercek projede: fetch('/api/lead', {...}) veya CRM webhook
     document.getElementById('formBody').style.display = 'none';
     document.getElementById('formSuccess').style.display = 'block';
