@@ -15,6 +15,7 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '773468665733671');
 fbq('track', 'PageView');
+fbq('track', 'ViewContent');
 </script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></noscript>
@@ -562,6 +563,11 @@ src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></n
     });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal:not(.hero .reveal)').forEach(el => io.observe(el));
+
+  // CTA bosilganda "Contact" hodisasi
+  document.querySelectorAll('a[href="#demo"]').forEach(a => {
+    a.addEventListener('click', () => { if (typeof fbq === 'function') fbq('track', 'Contact'); });
+  });
 
   // Form (yalnizca on yuz — backend/CRM baglantisi buraya eklenir)
   const btn = document.getElementById('submitBtn');
