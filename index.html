@@ -547,7 +547,7 @@ src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></n
 
 <script>
   // === Google Sheets: qo'shtirnoq ichiga Web App URL'ni joylang ===
-  const SHEET_URL = "";
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbyPRQqRsDaTfWeMp944M74Q11fAyRPjwG5xS-m3-B8dXA_PEStHxKVvnz0r2A62f9VShw/exec";
 
   // Nav shadow on scroll
   const nav = document.getElementById('nav');
@@ -577,8 +577,32 @@ src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></n
 
   function validPhone(v){
     const d = v.replace(/\D/g,'');
-    return d.length >= 10 && d.length <= 13;
+    return d.length >= 12;   // +90 va 10 xonali to'liq raqam
   }
+
+  // Telefon maskasi: +90 532 123 45 67
+  function formatPhone(v){
+    let d = v.replace(/\D/g,'');
+    if (d.startsWith('90')) d = d.slice(2);
+    else if (d.startsWith('0')) d = d.slice(1);
+    d = d.slice(0, 10);
+    let out = '+90';
+    if (d.length) out += ' ' + d.slice(0, 3);
+    if (d.length > 3) out += ' ' + d.slice(3, 6);
+    if (d.length > 6) out += ' ' + d.slice(6, 8);
+    if (d.length > 8) out += ' ' + d.slice(8, 10);
+    return out;
+  }
+  (function(){
+    var ph = document.getElementById('f-phone');
+    if (!ph) return;
+    ph.addEventListener('focus', function(){ if (ph.value.trim() === '') ph.value = '+90 '; });
+    ph.addEventListener('input', function(){ ph.value = formatPhone(ph.value); });
+    ph.addEventListener('blur', function(){
+      var d = ph.value.replace(/\D/g, '');
+      if (d === '90' || d === '') ph.value = '';
+    });
+  })();
 
   // kullanici duzeltince uyariyi kaldir
   document.querySelectorAll('#formBody .field').forEach(f => {
