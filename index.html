@@ -546,6 +546,9 @@ src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></n
 </footer>
 
 <script>
+  // === Google Sheets: qo'shtirnoq ichiga Web App URL'ni joylang ===
+  const SHEET_URL = "";
+
   // Nav shadow on scroll
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => {
@@ -605,6 +608,17 @@ src="https://www.facebook.com/tr?id=773468665733671&ev=PageView&noscript=1"/></n
     if (firstInvalid) { firstInvalid.focus(); return; }
     if (typeof fbq === 'function') fbq('track', 'Lead');
     // gercek projede: fetch('/api/lead', {...}) veya CRM webhook
+    if (SHEET_URL) {
+      var payload = {
+        type:    document.getElementById('f-type').value,
+        method:  document.getElementById('f-method').value,
+        problem: document.getElementById('f-problem').value,
+        city:    document.getElementById('f-city').value.trim(),
+        name:    document.getElementById('f-name').value.trim(),
+        phone:   document.getElementById('f-phone').value.trim()
+      };
+      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) }).catch(function(){});
+    }
     document.getElementById('formBody').style.display = 'none';
     document.getElementById('formSuccess').style.display = 'block';
   });
